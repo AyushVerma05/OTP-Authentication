@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>OTP Authentication by AV</title>
+    <style>
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #b0f3f3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        
+        .otp-container {
+            background-color: #f3f0df;
+            padding: 40px 50px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .otp-container h2 {
+            font-size: 30px;
+            margin-bottom: 30px;
+            color: #0a0101;
+        }
+
+        .inputs {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .input {
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            border: 2px solid #1b1a1a;
+            border-radius: 8px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background-color: #c8f5a4;
+            outline: none;
+        }
+
+        .input:focus {
+            border-color: #674ce4;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        .input.invalid {
+            border-color: #ce3f2f;
+        }
+
+        .input:disabled {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+
+        
+        .error-message {
+            color: #e74c3c;
+            font-size: 24px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Success Message */
+        .success-message {
+            color: #391ed4;
+            font-size: 24px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        
+        .otp-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #070101;
+            margin-bottom: 20px;
+            background-color: #d9e787;
+            padding: 10px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        
+        .otp-refresh-btn {
+            display: inline-block;
+            padding: 10px;
+            margin-left: 10px;
+            font-size: 24px;
+            background-color: #ee8ce9;
+            color: #ec5770;
+            border: 2px solid #e22323;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .otp-refresh-btn:hover {
+            background-color: #e6f0ff;
+        }
+
+        
+        .submit-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+
+        
+        .icon {
+            margin-right: 5px;
+        }
+
+        
+        @media (max-width: 480px) {
+            .otp-container {
+                padding: 30px;
+                width: 90%;
+            }
+
+            .input {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+
+            .otp-refresh-btn {
+                font-size: 24px;
+                
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="otp-container">
+        <h2>OTP Authentication</h2>
+
+        <div class="otp-display" id="otp-display"></div> 
+        
+        <button class="otp-refresh-btn" id="otp-refresh-btn">
+            🔄
+        </button>
+
+        <div class="inputs">
+            <input class="input" type="text" inputmode="numeric" maxlength="1" aria-label="OTP digit 1" />
+            <input class="input" type="text" inputmode="numeric" maxlength="1" aria-label="OTP digit 2" />
+            <input class="input" type="text" inputmode="numeric" maxlength="1" aria-label="OTP digit 3" />
+            <input class="input" type="text" inputmode="numeric" maxlength="1" aria-label="OTP digit 4" />
+        </div>
+
+        <p id="error-message" class="error-message">Unauthorized. Incorrect OTP entered.</p>
+        <p id="success-message" class="success-message">Login Successful!</p>
+
+        
+        <button id="submit-btn" class="submit-btn">Submit</button>
+    </div>
+
+    <script>
+        let currentOtp = generateOtp();  
+        const otpDisplay = document.getElementById('otp-display');
+        const inputs = document.querySelectorAll('.input');
+        const errorMessage = document.getElementById('error-message');
+        const successMessage = document.getElementById('success-message');
+        const submitBtn = document.getElementById('submit-btn');
+
+        
+        function generateOtp() {
+            return Math.floor(1000 + Math.random() * 9000).toString(); // Generates a random 4-digit OTP
+        }
+
+       
+        otpDisplay.textContent = currentOtp;
+
+        
+        function refreshOtp() {
+            currentOtp = generateOtp();  
+            otpDisplay.textContent = currentOtp;  
+            inputs.forEach(input => input.value = ''); 
+            errorMessage.style.display = 'none';  
+            successMessage.style.display = 'none'; 
+        }
+
+        
+        function handleInput(event) {
+            const target = event.target;
+            const value = target.value;
+
+            
+            if (isNaN(value)) {
+                target.value = '';
+                target.classList.add('invalid');
+                setTimeout(() => target.classList.remove('invalid'), 300);
+                return;
+            }
+
+            
+            if (value !== '') {
+                const nextInput = target.nextElementSibling;
+                if (nextInput) {
+                    nextInput.focus();
+                }
+            }
+
+            
+            checkFormCompletion();
+        }
+
+       
+        function handleKeyDown(event) {
+            const target = event.target;
+
+            
+            if (event.key === 'Backspace' || event.key === 'Delete') {
+                target.value = '';
+                const prevInput = target.previousElementSibling;
+                if (prevInput) {
+                    prevInput.focus();
+                }
+            }
+
+           
+            checkFormCompletion();
+        }
+
+        
+        function checkFormCompletion() {
+            const otp = Array.from(inputs).map(input => input.value).join('');
+            if (otp.length === 4) {
+               
+                submitBtn.disabled = false;
+            } else {
+                submitBtn.disabled = true;
+            }
+        }
+
+        
+        function handleSubmit() {
+            const enteredOtp = Array.from(inputs).map(input => input.value).join('');
+            if (enteredOtp === currentOtp) {
+                successMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
+            } else {
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+            }
+        }
+
+        
+        inputs.forEach(input => {
+            input.addEventListener('input', handleInput);
+            input.addEventListener('keydown', handleKeyDown);
+        });
+
+        
+        document.getElementById('otp-refresh-btn').addEventListener('click', refreshOtp);
+
+        
+        submitBtn.addEventListener('click', handleSubmit);
+    </script>
+</body>
+
+</html>
